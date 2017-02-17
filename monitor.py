@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import pynayzr
+import time
 import json
 import multiprocessing
 import datetime
 from io import BytesIO
+from contextlib import closing
 from mongoengine import connect, fields
 from mongoengine.document import Document
 
@@ -29,14 +31,23 @@ def fetch(news):
     news.img.put(b)
     news.save()
 
+    del m
+
 
 def main():
-    pynayzr.set_google_credentials('key.json')
+    pynayzr.set_google_credentials('/home/grd/Project/Pynayzr/pynayzr-monitor/key.json')
 
     collective_list = ['tvbs', 'cti', 'ebc', 'ftv']
-    p = multiprocessing.Pool(4)
-    p.map(fetch, collective_list)
+
+    with closing(multiprocessing.Pool(4)) as p:
+        p.map(fetch, collective_list)
 
 
 if __name__ == '__main__':
-    main()
+    print('Start PyNayzr Monitor')
+    count = 0
+    while True:
+        count += 1
+        print('\r>>> % 4d' % (count), end='')
+        main()
+        time.sleep(10)
